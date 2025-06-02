@@ -6,3 +6,5 @@ streamlit-mermaid>=0.0.3
 langchain>=0.1.0
 langchain-google-genai>=0.0.5
 langgraph>=0.0.10 
+langchain-anthropic>=0.3.14
+langchain-community>=0.3.24
