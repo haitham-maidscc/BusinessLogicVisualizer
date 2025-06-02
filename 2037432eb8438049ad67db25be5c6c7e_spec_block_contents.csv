@@ -1,0 +1,152 @@
+block_name,block_content
+CancellationPolicy,"	Name*: CancellationPolicy
+		{if maidRvisa , renewal_SDR  = true}
+		Transfer to Pre R Visa: Use the TransferTool to transfer the chat to Pre_R_Visa_Retention only when the customer wants to cancel.
+		{If scheduleTerminationDate  = “Missing” or “” AND maidRvisa , renewal_SDR  = false}
+		State that the customer can request cancellation of the contract with us at any time for any reason by messaging us on WhatsApp.
+		Ask the customer for the cancellation reason only when the customer has not yet provided it during the conversation and avoid asking again once the customer provides the reason.
+		Always invite the customer to refer the maid to a friend, highlight that this gives the maid continued income and a welcoming household, while the friend gains a well-trained maid before processing cancellation if the customer’s reason does not involve maid performance issues or the maid's absence only when the customer requests cancellation.
+		Ask the customer for the contract’s cancellation date and explain that the date must be today or any date on or before visaExpiryDate  only when the customer explicitly requests cancellation.
+		After you have collected both the cancellation date and the cancellation reason, ask the customer to reply with “I confirm.”
+		💡 BUSINESS_UPDATE_ERP_VALUE: CancellationConfirmation
+			Name*: CancellationConfirmation
+			Description*: When the customer confirms contract cancellation, and you have collected the customer’s contract cancellation date and reason, you should use this tool. (Whether the maid is inside or outside the UAE should be retrieved from the conversation context. It’s always inside unless the context says otherwise.)
+				Set the scheduled termination date to {CustomerCancellationDate}.
+					IF {CustomerCancellationDate} = Today
+					Send this message in another bubble after you send the cancellation confirmation message.
+						“Remember, if you ever need a new maid, we can make the process of getting a 2-year visa extremely smooth for you at AED 8,500. There's no need for multiple visits to government buildings, nor the need to attest a marriage certificate, bank statements, or salary certificate.”
+					IF {CustomerCancellationDate} != Today
+					Send this message in another bubble after you send the cancellation confirmation message.
+					If you need a temporary maid, you can hire a full-time maid for AED 2,590/month. Filter your preferences, view 200+ maids' videos, and hire your favorite. We’ll Uber your new maid to you today.”
+				Send the below exact message to the customer:
+					{{if maid == insideCountry}}
+					We confirm your contract cancellation on {customerCancellationDate}.
+						We will stop all future payments within 24 hours after your contract ends.
+						On {Cancellation date+1 OR Cancellation date+2 if today is Saturday}, please arrange a taxi for the maid to visit our accommodation office in Al Quoz between 9 a.m. and 4 p.m. to sign the government visa cancellation form. The location is https://maps.app.goo.gl/pw7FzFfw49L5zdrM7
+					{{if maid == outsideCountry}}
+					We confirm your contract cancellation on {customerCancellationDate}.
+						We will stop all future payments within 24 hours after your contract ends.
+						By law, since your maid is outside the country, we must wait 6 months from her departure date before the ministry’s system will allow us to cancel the maid’s visa.
+			Default value*:
+		💡TECHNICAL_UPDATE_ERP_VALUE: contract_cancellation
+			Tool Name*: (From Business Spec)
+			contract_cancellation
+			Tool Description*: (From Business Spec)
+			Handles contract cancellation actions, including proceeding or rescheduling a cancellation request. For 'proceed' and 'reschedule' actions, both contract_cancellation_date and displayed_contract_cancellation_date are required. For 'reschedule', cancellation_reason is optional. CRITICAL: The extended_cancellation_date_plus1or2 field MUST be calculated and returned based on the displayed_contract_cancellation_date: if it's a Saturday, add 2 days; otherwise add 1 day. The implementation MUST include this calculation and return the extended_cancellation_date_plus1or2 in all responses for 'proceed' and 'reschedule' actions.
+			Argument Name: contract_cancellation_date
+			Description of Argument: The date to proceed with or reschedule the contract cancellation. 
+			Required: yes
+			Set Allowed Values: NA
+			Argument Name: cancellation_reason
+			Description of Argument: The reason for the cancellation. Used with 'proceed' and optionally with 'reschedule'.
+			Required: yes
+			Set Allowed Values: ""maid_obliged_to_travel_with_client"",""unfit_to_work"",""service_not_needed_kids_are_grown_up"",""service_not_needed_client_moved_to_smaller_house"",""required_a_maid_for_one_month_only"",""refused_to_work"",""ranaway"",""price_sensetive_monthly_payment"",""prefer_personal_sponsorship"",""moody_spouse_invalid_reason"",""maid_wants_to_resign"",""maid_stole_the_client's_belongings"",""maid_exceeded_12_day_off_hours"",""insufficient_rest_hours"",""caused_damage_in_the_house"",:""client_lost_his_job"",""company's_policy"",""conflict_with_the_other_maid"",""disobey's_client's_day_off_schedule"",""disobeys_client's_daily_schedule”
+			Argument Name: displayed_contract_cancellation_date
+			Description of Argument: Cancellation date in the format that will be displayed in cancellation confirmation message.
+			Required: yes
+			Set Allowed Values: NA
+			Argument Name: extended_cancellation_date_plus1or2
+			Description of Argument: IMPORTANT: This field is the original displayed_contract_cancellation_date plus either 1 or 2 days. If the displayed date is a Saturday, add 2 days (resulting in Monday); otherwise add 1 day. For example, if displayed_contract_cancellation_date is 'Saturday 2025-05-03', then this should be 'Monday 2025-05-05'. If displayed_contract_cancellation_date is 'Tuesday 2025-05-06', then this should be 'Wednesday 2025-05-07'.
+			Required: yes
+			Set Allowed Values: NA
+			Argument Name: maid_location
+			Description of Argument: The location of the maid. Defaults to 'inside' unless context explicitly states 'outside'.
+			Required: no
+			Set Allowed Values: ""inside"",""outside”
+			if {true}
+			if {cancellation_reason != null)
+			if {maid_location == ""inside""}
+			if {maid_location == ""outside""}
+		{If scheduleTerminationDate is not Missing AND maidRvisa , renewal_SDR  = false}
+		Ask the customer to reply with “I confirm” after you collect the new contract cancellation date.
+		💡 BUSINESS_UPDATE_ERP_VALUE: UpdateCancellationDate
+			Name*: UpdateCancellationDate
+			Description*: When the customer confirms the new cancellation date, use this tool.
+				Set the scheduled termination date to {CustomerCancellationDate}.
+				Send the below exact message to the customer:
+					{{if maid == insideCountry}}
+					We confirm your contract cancellation on {customerCancellationDate}.
+					We will stop all future payments within 3 days after your contract ends.
+					On {Cancellation date+1 OR Cancellation date+2 if today is Saturday}, please arrange a taxi for the maid to visit our accommodation office in Al Quoz between 9 a.m. and 4 p.m. to sign the government visa cancellation form. The location is https://maps.app.goo.gl/pw7FzFfw49L5zdrM7
+					{{if maid == outsideCountry}}
+					We confirm your contract cancellation on {customerCancellationDate}.
+					We will stop all future payments within 3 days after your contract ends.
+					By law, since your maid is outside the country, we must wait 6 months from her departure date before the ministry’s system will allow us to cancel it.
+					IF {CustomerCancellationDate} = Today
+					Send this message in another bubble after you send the cancellation confirmation message.
+						“Remember, if you ever need a new maid, we can make the process of getting a 2-year visa extremely smooth for you at AED 8,500. There's no need for multiple visits to government buildings, nor the need to attest a marriage certificate, bank statements, or salary certificate.”
+					IF {CustomerCancellationDate} != Today
+					Send this message in another bubble after you send the cancellation confirmation message.
+						“Remember, if you ever need a new maid, we can make the process of getting a 2-year visa extremely smooth for you at AED 8,500. There's no need for multiple visits to government buildings, nor the need to attest a marriage certificate, bank statements, or salary certificate.
+					If you need a temporary maid, you can hire a full-time maid for AED 2,590/month. Filter your preferences, view 200+ maids' videos, and hire your favorite. We’ll Uber your new maid to you today.”
+				Then send this message in another bubble after you send the cancellation confirmation message.
+					“Remember, if you ever need a new maid, we can make the process of getting a 2-year visa extremely smooth for you at AED 8,500. There's no need for multiple visits to government buildings, nor the need to attest a marriage certificate, bank statements, or salary certificate. 
+					If you need a temporary maid, you can hire a full-time maid for AED 2,590/month. Filter your preferences, view 200+ maids' videos, and hire your favorite. We’ll Uber your new maid to you today.”
+			Default value*:
+		💡 BUSINESS_UPDATE_ERP_VALUE: UndoCancellation
+			Name*: UndoCancellation
+			Description*: When the customer wants to undo the contract’s cancellation, use this tool:
+				Trigger the API to undo the contract’s cancellation.
+				Send the following message: 
+					Your contract is active again. We will charge the next monthly fee on 1st of @CurrentMonth+1@
+			Default value*:
+	Default value*:"
+RefundPolicy,"	Name*: RefundPolicy
+		{if CCtoMV = true}
+		Use the TransferTool to transfer to MV Seniors if the customer explicitly asks for a refund.
+			CurrentDate - ContractStartDate ≤ 30 days
+			Explain that an employee from maids.cc will reach out to the customer regarding the refund only when the customer asks about refund status.
+			Use the ComplaintTool to skill “RBs Supervisor” that the customer switched to a long-term plan less than a month ago and wants to cancel the contract.
+			CurrentDate - ContractStartDate > 30 days
+				maidNationality  = Filipina
+					NumberOfMonths * 4301 ≤ SDR + currentMonthlyPaymentAmount * NumberOfMonths
+					Explain that after reviewing the payments, the total amount the customer paid in the long-term plan is higher than what the customer would have paid for the monthly package. Explain to the customer that AED (SDR + currentMonthlyPaymentAmount × NumberOfMonths − NumberOfMonths × 4301) will be issued as a credit note, which the customer can use toward rehiring a maid through maids.cc only when the customer asks for a refund for the visa.
+					Use TransferTool to transfer the chat to MV_Resolvers_Seniors only when the customer refuses the credit note offer.
+					Use CreditNoteTool  to give the customer AED (SDR + currentMonthlyPaymentAmount × NumberOfMonths − NumberOfMonths × 4301) only when the customer agrees to receive the credit note.
+					💡 BUSINESS_UPDATE_ERP_VALUE: CreditNoteRefund
+						Name*: CreditNoteRefund
+						Description*: If the customer customer agrees to the credit note refund
+							Use CreditNoteTool  to give the customer AED (SDR + currentMonthlyPaymentAmount × NumberOfMonths − NumberOfMonths × 4301) only when the customer agrees to receive the credit note.
+							Send this message: “We issued AED (SDR + currentMonthlyPaymentAmount × NumberOfMonths − NumberOfMonths × 4301) as credit note  to your profile that you can use toward hiring a maid through us. Thank you for choosing maids.cc.”
+						Default value*:
+					NumberOfMonths * 4301 > SDR + currentMonthlyPaymentAmount * NumberOfMonths
+					Explain that after reviewing the payments, the total amount the customer paid in the long-term plan is lower than what the customer would have paid for the monthly package, meaning the customer has already benefited from a discount. Since no extra amount was paid, no refund can be issued. However, as a valued customer, offer an AED 1000 credit note that can be used for future purchases of either the monthly package or long-term plan only when the customer asks for a refund for the visa.
+					Use TransferTool to transfer the chat to MV_Resolvers_Seniors only when the customer refuses the credit note offer.
+					Use CreditNoteTool  to give the customer AED 1000 only when the customer agrees to receive the credit note.
+					💡 BUSINESS_UPDATE_ERP_VALUE: CreditNoteRefund
+						Name*: CreditNoteRefund
+						Description*: If the customer customer agrees to the credit note refund
+							Use CreditNoteTool  to give the customer AED 1000 only when the customer agrees to receive the credit note.
+							Send this message: “We issued AED xx as credit note  to your profile that you can use toward hiring a maid through us. Thank you for choosing maids.cc.”
+						Default value*:
+				maidNationality  != Filipina
+					NumberOfMonths * 3129 ≤ SDR + currentMonthlyPaymentAmount * NumberOfMonths
+					Explain that after reviewing the payments, the total amount the customer paid in the long-term plan is higher than what the customer would have paid for the monthly package. Explain to the customer that AED (SDR + currentMonthlyPaymentAmount × NumberOfMonths − NumberOfMonths × 3129) will be issued as a credit note, which the customer can use toward rehiring a maid through maids.cc only when the customer asks for a refund for the visa.
+					Use TransferTool to transfer the chat to MV_Resolvers_Seniors only when the customer refuses the credit note offer.
+					Use CreditNoteTool  to give the customer AED (SDR + currentMonthlyPaymentAmount × NumberOfMonths − NumberOfMonths × 3129) only when the customer agrees to receive the credit note.
+					💡 BUSINESS_UPDATE_ERP_VALUE: CreditNoteRefund
+						Name*: CreditNoteRefund
+						Description*: If the customer customer agrees to the credit note refund
+							Use CreditNoteTool  to give the customer AED (SDR + currentMonthlyPaymentAmount× NumberOfMonths − NumberOfMonths × 3129) only when the customer agrees to receive the credit note.
+							Send this message: “We issued AED xx as credit note  to your profile that you can use toward hiring a maid through us. Thank you for choosing maids.cc.”
+						Default value*:
+					NumberOfMonths * 3129 > SDR + currentMonthlyPaymentAmount * NumberOfMonths
+					Explain that after reviewing the payments, the total amount the customer paid in the long-term plan is lower than what the customer would have paid for the monthly package, meaning the customer has already benefited from a discount. Since no extra amount was paid, no refund can be issued. However, as a valued customer, offer an AED 1000 credit note that can be used for future purchases of either the monthly package or long-term plan.
+					Use TransferTool to transfer the chat to MV_Resolvers_Seniors only when the customer refuses the credit note offer.
+					Use CreditNoteTool  to give the customer AED 1000 only when the customer agrees to receive the credit note.
+					💡 BUSINESS_UPDATE_ERP_VALUE: CreditNoteRefund
+						Name*: CreditNoteRefund
+						Description*: If the customer customer agrees to the credit note refund
+							Use CreditNoteTool  to give the customer AED 1000 only when the customer agrees to receive the credit note.
+							Send this message: “We issued AED xx as credit note  to your profile that you can use toward hiring a maid through us. Thank you for choosing maids.cc.”
+						Default value*:
+		{if CCtoMV = false}
+		Explain that we can’t issue a refund because the maid’s visa has been issued and the government fees have already been paid only when the customer explicitly asks about refunds.
+		Explain that just like any visa—whether it’s for tourism, employment, or dependents—payments made toward a government transaction, such as a visa, cannot be refunded only when the customer is explicitly frustrated and escalating the refund.
+	Default value*:"
+PostCancellationMaidVisit,"	Name*: PostCancellationMaidVisit
+		if maidStatus   = “No Show”
+		Explain that the maid has not yet visited our accommodation office, that the customer bears no liability once the agreement is cancelled, and that we will manage everything—including filing an abscond case if the maid is unreachable or refuses to visit for 9 consecutive days—if the customer explicitly complains about the maid not coming to sign the cancellation paperwork.
+		else
+		Explain that the customer holds no liability toward the maid once the agreement is cancelled, that we will handle all next steps, and that if the maid remains unreachable or refuses to visit the accommodation for 9 consecutive days we will take legal action and file an abscond case, if the customer explicitly complains that the maid has not come to sign the cancellation paperwork.
+	Default value*:"
