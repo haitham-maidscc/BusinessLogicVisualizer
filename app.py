@@ -290,12 +290,12 @@ if st.session_state.agent_result_df is not None:
     logger.info("Displaying results in main area")
     st.subheader("📊 Mermaid Graph Viewer")
     
-    # Add theme selection
-    theme = st.sidebar.selectbox(
-        "Select Theme",
-        options=["default", "forest", "dark", "neutral"],
-        help="Choose a theme for the Mermaid diagrams"
-    )
+    # # Add theme selection
+    # theme = st.sidebar.selectbox(
+    #     "Select Theme",
+    #     options=["default", "forest", "dark", "neutral"],
+    #     help="Choose a theme for the Mermaid diagrams"
+    # )
     
     # Create a dropdown with block names
     block_names = st.session_state.agent_result_df['block_name'].tolist()
