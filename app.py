@@ -29,7 +29,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-subprocess.run(["sudo", "npm", "install", "-g", "@mermaid-js/mermaid-cli"])
+APP_ROOT = os.path.dirname(os.path.abspath(__file__)) # Root directory of your Streamlit app
+NODE_MODULES_DIR = os.path.join(APP_ROOT, "node_modules")
+PACKAGE_JSON_PATH = os.path.join(APP_ROOT, "package.json")
+
+st.info("🔧 Running npm install...")
+
+# Command to run.
+# If you have package.json:
+command = ["npm", "install", "--prefix", APP_ROOT, "--cache", os.path.join(APP_ROOT, ".npm-cache")]
+# If you want to install a specific package without package.json (less recommended):
+# command = ["npm", "install", "your-npm-package-name@latest", "--prefix", APP_ROOT, "--cache", os.path.join(APP_ROOT, ".npm-cache")]
+
+process = subprocess.run(
+    command,
+    cwd=APP_ROOT,  # Run in the app's root directory
+    capture_output=True,
+    text=True,
+    check=True  # Raise an exception for non-zero exit codes
+)
+st.success("✅ npm install completed successfully!")
+if process.stdout:
+    # st.text_area("npm install stdout:", process.stdout, height=100)
+    print(f"NPM Install STDOUT: {process.stdout}") # Logs to Streamlit Cloud logs
+if process.stderr:
+    # st.text_area("npm install stderr:", process.stderr, height=100)
+    print(f"NPM Install STDERR: {process.stderr}") # Logs to Streamlit Cloud logs
 
 logger.info("Starting application initialization")
 logger.info("Libraries imported successfully")
