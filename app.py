@@ -10,7 +10,6 @@ from parse_spec_block import process_spec_blocks
 from b2m_agent import build_mermaid_agent, run_agent, run_agent
 from notion_utils import get_all_page_content
 from streamlit_mermaid import st_mermaid
-from streamlit_markdown import st_markdown
 from langchain.chat_models import init_chat_model
 
 load_dotenv(find_dotenv(), override=True)
