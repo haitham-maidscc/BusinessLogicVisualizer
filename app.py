@@ -37,9 +37,9 @@ st.info("🔧 Running npm install...")
 
 # Command to run.
 # If you have package.json:
-command = ["npm", "install", "--prefix", APP_ROOT, "--cache", os.path.join(APP_ROOT, ".npm-cache")]
+# command = ["npm", "install", "--prefix", APP_ROOT, "--cache", os.path.join(APP_ROOT, ".npm-cache")]
 # If you want to install a specific package without package.json (less recommended):
-# command = ["npm", "install", "your-npm-package-name@latest", "--prefix", APP_ROOT, "--cache", os.path.join(APP_ROOT, ".npm-cache")]
+command = ["npm", "install", "@mermaid-js/mermaid-cli", "--prefix", APP_ROOT, "--cache", os.path.join(APP_ROOT, ".npm-cache")]
 
 process = subprocess.run(
     command,
