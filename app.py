@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 APP_ROOT = os.path.dirname(os.path.abspath(__file__)) # Root directory of your Streamlit app
 NODE_MODULES_DIR = os.path.join(APP_ROOT, "node_modules")
 PACKAGE_JSON_PATH = os.path.join(APP_ROOT, "package.json")
+TARGET_PACKAGE_DIR_IN_NODE_MODULES = os.path.join(NODE_MODULES_DIR, "@mermaid-js")
 
 
 # --- Streamlit App UI ---
@@ -61,6 +62,9 @@ if process.stdout:
 if process.stderr:
     # st.text_area("npm install stderr:", process.stderr, height=100)
     print(f"NPM Install STDERR: {process.stderr}") # Logs to Streamlit Cloud logs
+
+if not os.path.exists(TARGET_PACKAGE_DIR_IN_NODE_MODULES): # or check for the specific executable
+    st.error("NPM package not found. Please check installation logs.")
 
 logger.info("Starting application initialization")
 logger.info("Libraries imported successfully")
@@ -162,6 +166,7 @@ def generate_svg_from_mermaid_code(mermaid_code: str, theme: str = "default", ba
 
         # Construct the mmdc command
         command = [
+            "npx",
             "mmdc",
             "-i", input_file_path,
             "-o", output_file_path,
