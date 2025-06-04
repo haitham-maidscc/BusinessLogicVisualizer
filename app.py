@@ -29,7 +29,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-subprocess.run(["npm", "install", "-g", "@mermaid-js/mermaid-cli"])
+subprocess.run(["sudo", "npm", "install", "-g", "@mermaid-js/mermaid-cli"])
 
 logger.info("Starting application initialization")
 logger.info("Libraries imported successfully")
