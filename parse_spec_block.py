@@ -146,7 +146,7 @@ def process_notion_blocks_from_file(
 ):
     logger.info(f"Processing Notion blocks from file: {input_filepath}")
     all_blocks = load_blocks_from_file(input_filepath)
-    if not all_blocks or len(all_blocks):
+    if not all_blocks or len(all_blocks)==0:
         logger.warning("No blocks loaded, exiting")
         return all_blocks
 
