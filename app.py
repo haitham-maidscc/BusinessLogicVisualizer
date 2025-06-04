@@ -33,6 +33,12 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__)) # Root directory of your S
 NODE_MODULES_DIR = os.path.join(APP_ROOT, "node_modules")
 PACKAGE_JSON_PATH = os.path.join(APP_ROOT, "package.json")
 
+
+# --- Streamlit App UI ---
+logger.info("Initializing Streamlit UI")
+st.set_page_config(layout="wide")
+st.title("📄 Business Flowchart Generator")
+
 st.info("🔧 Running npm install...")
 
 # Command to run.
@@ -229,11 +235,6 @@ def create_zip_of_svgs(df: pd.DataFrame, theme: str = "default", background: str
     memory_file.seek(0)
     error_message = "\n".join(error_messages) if error_messages else None
     return memory_file.getvalue(), error_message
-
-# --- Streamlit App UI ---
-logger.info("Initializing Streamlit UI")
-st.set_page_config(layout="wide")
-st.title("📄 Business Flowchart Generator")
 
 # Initialize session state for storing results if they don't exist
 if 'agent_result_df' not in st.session_state:
