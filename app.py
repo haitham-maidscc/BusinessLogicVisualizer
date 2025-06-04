@@ -49,7 +49,8 @@ llm = init_chat_model(f"anthropic:{ANTHROPIC_MODEL}")
 # Table mapping configuration
 TABLE_MAPPING = {
     "MV_Resolvers": "1eb7432eb8438080b80bf2483e27b9b9",
-    "Doctors": "1ed7432eb843809f912fdbb4c370998e"
+    "Doctors": "1ed7432eb843809f912fdbb4c370998e",
+    "MaidsAT": "1ed7432eb84380409717ffa3cbc506ef"
 }
 
 NOTION_TOKEN = os.environ.get("NOTION_SECRET")
@@ -223,10 +224,10 @@ page_id_input = st.sidebar.text_input(
 
 # Replace text input with dropdown for table selection
 selected_table_name = st.sidebar.selectbox(
-    "Select Table:",
+    "Select Agent:",
     options=list(TABLE_MAPPING.keys()),
     key="agent3_table_selection",
-    help="Select the relevant table from the list. This will automatically use the correct table ID."
+    help="Select the relevant agent from the list."
 )
 
 # Button to trigger agent execution
@@ -303,7 +304,7 @@ if st.session_state.agent_result_df is not None:
                 if svg_content:
                     st.success("SVG generated successfully!")
                     st.download_button(
-                        label="Download SVG",
+                        label="Download Graph (SVG)",
                         data=svg_content,
                         file_name=f"{selected_block.replace('/', '_')}.svg",
                         mime="image/svg+xml",
@@ -313,7 +314,7 @@ if st.session_state.agent_result_df is not None:
                     st.error("Could not generate SVG for download.")
 
         with col2:
-            if st.button("Prepare All SVGs (ZIP)", key="prepare_all_svgs"):
+            if st.button("Prepare All Graphs (ZIP, SVG)", key="prepare_all_svgs"):
                 with st.spinner("Generating ZIP file with all SVGs..."):
                     zip_bytes, error_message = create_zip_of_svgs(
                         st.session_state.agent_result_df,
