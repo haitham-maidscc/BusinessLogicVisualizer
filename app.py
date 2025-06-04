@@ -131,7 +131,7 @@ def generate_svg_from_mermaid_code(mermaid_code: str, theme: str = "default", ba
 
         # Construct the mmdc command
         command = [
-            "C:\\Users\\user\\AppData\\Roaming\\npm\\mmdc.cmd",
+            "mmdc",
             "-i", input_file_path,
             "-o", output_file_path,
             "-t", theme,
