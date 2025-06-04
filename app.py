@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
-import subprocess
+import base64
+import requests
 import tempfile
 from notion_client import Client as NotionClient
 from dotenv import load_dotenv, find_dotenv
@@ -9,6 +10,7 @@ from parse_spec_block import process_spec_blocks
 from b2m_agent import build_mermaid_agent, run_agent, run_agent
 from notion_utils import get_all_page_content
 from streamlit_mermaid import st_mermaid
+from streamlit_markdown import st_markdown
 from langchain.chat_models import init_chat_model
 
 load_dotenv(find_dotenv(), override=True)
@@ -29,69 +31,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__)) # Root directory of your Streamlit app
-NODE_MODULES_DIR = os.path.join(APP_ROOT, "node_modules")
-PACKAGE_JSON_PATH = os.path.join(APP_ROOT, "package.json")
-TARGET_PACKAGE_DIR_IN_NODE_MODULES = os.path.join(NODE_MODULES_DIR, "@mermaid-js")
-
-def check_node_version():
-    """Check if Node.js version is compatible (>=14.0.0)"""
-    try:
-        result = subprocess.run(['node', '--version'], capture_output=True, text=True)
-        if result.returncode == 0:
-            version = result.stdout.strip().lstrip('v')
-            major_version = int(version.split('.')[0])
-            if major_version < 14:
-                logger.error(f"Incompatible Node.js version: {version}. Version 14 or higher is required.")
-                st.error(f"Incompatible Node.js version: {version}. Version 14 or higher is required.")
-                return False
-            logger.info(f"Node.js version {version} is compatible")
-            return True
-        else:
-            logger.error("Failed to get Node.js version")
-            st.error("Failed to get Node.js version")
-            return False
-    except Exception as e:
-        logger.error(f"Error checking Node.js version: {str(e)}")
-        st.error(f"Error checking Node.js version: {str(e)}")
-        return False
-    
-check_node_version()
 
 # --- Streamlit App UI ---
 logger.info("Initializing Streamlit UI")
 st.set_page_config(layout="wide")
 st.title("📄 Business Flowchart Generator")
-
-# Check Node.js version before proceeding
-if not check_node_version():
-    st.stop()
-
-st.info("🔧 Running npm install...")
-
-# Command to run.
-# If you have package.json:
-# command = ["npm", "install", "--prefix", APP_ROOT, "--cache", os.path.join(APP_ROOT, ".npm-cache")]
-# If you want to install a specific package without package.json (less recommended):
-command = ["npm", "install", "@mermaid-js/mermaid-cli", "--prefix", APP_ROOT, "--cache", os.path.join(APP_ROOT, ".npm-cache")]
-
-process = subprocess.run(
-    command,
-    cwd=APP_ROOT,  # Run in the app's root directory
-    capture_output=True,
-    text=True,
-    check=True  # Raise an exception for non-zero exit codes
-)
-st.success("✅ npm install completed successfully!")
-if process.stdout:
-    # st.text_area("npm install stdout:", process.stdout, height=100)
-    print(f"NPM Install STDOUT: {process.stdout}") # Logs to Streamlit Cloud logs
-if process.stderr:
-    # st.text_area("npm install stderr:", process.stderr, height=100)
-    print(f"NPM Install STDERR: {process.stderr}") # Logs to Streamlit Cloud logs
-
-if not os.path.exists(TARGET_PACKAGE_DIR_IN_NODE_MODULES): # or check for the specific executable
-    st.error("NPM package not found. Please check installation logs.")
 
 logger.info("Starting application initialization")
 logger.info("Libraries imported successfully")
@@ -168,17 +112,12 @@ def process_dataframe_with_mermaid_agent(page_id: str, df: pd.DataFrame, logic_c
 
     return df
 
-def generate_svg_from_mermaid_code(mermaid_code: str, theme: str = "default", background: str = "transparent") -> str | None:
+def mermaid_to_svg(mermaid_code: str, theme: str = "default") -> str | None:
     """
-    Generates SVG content from Mermaid code using the mmdc CLI.
+    Generates SVG content from Mermaid code using mermaid.ink API.
     Returns the SVG string or None if an error occurs.
     """
-    logger.info("Generating SVG from Mermaid code")
-    
-    # Check Node.js version before proceeding
-    if not check_node_version():
-        return None
-        
+    logger.info("Generating SVG from Mermaid code using mermaid.ink API")
     try:
         # Clean up the Mermaid code
         mermaid_code = mermaid_code.strip()
@@ -188,58 +127,32 @@ def generate_svg_from_mermaid_code(mermaid_code: str, theme: str = "default", ba
             mermaid_code = mermaid_code[:-len("```")]
         mermaid_code = mermaid_code.strip()
 
-        # Create temporary files for input and output
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".mmd") as tmp_input_file:
-            tmp_input_file.write(mermaid_code)
-            input_file_path = tmp_input_file.name
+        # Encode the Mermaid code
+        graphbytes = mermaid_code.encode("utf8")
+        base64_bytes = base64.urlsafe_b64encode(graphbytes)
+        base64_string = base64_bytes.decode("ascii")
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".svg") as tmp_output_file:
-            output_file_path = tmp_output_file.name
-
-        # Construct the mmdc command
-        command = [
-            "npx",
-            "mmdc",
-            "-i", input_file_path,
-            "-o", output_file_path,
-            "-t", theme,
-            "-b", background
-        ]
-
-        logger.debug(f"Running mmdc command: {' '.join(command)}")
-        process = subprocess.run(command, capture_output=True, text=True)
-
-        if process.returncode == 0 and os.path.exists(output_file_path):
-            with open(output_file_path, "r", encoding="utf-8") as f:
-                svg_content = f.read()
+        # Construct the URL with theme
+        url = f'https://mermaid.ink/svg/{base64_string}?type={theme}'
+        
+        # Make the request
+        logger.debug(f"Requesting SVG from mermaid.ink API: {url}")
+        response = requests.get(url)
+        
+        if response.status_code == 200:
             logger.info("Successfully generated SVG")
-            return svg_content
+            return response.content.decode('utf-8')
         else:
-            logger.error(f"Mermaid CLI failed to generate SVG. Stderr: {process.stderr}")
-            if process.stdout:
-                logger.error(f"MMDC Stdout: {process.stdout}")
+            logger.error(f"Failed to generate SVG. Status code: {response.status_code}")
+            logger.error(f"Response content: {response.text}")
             return None
 
-    except FileNotFoundError:
-        logger.error("Mermaid CLI (mmdc) not found")
-        st.error(
-            "Mermaid CLI (mmdc) not found. "
-            "Please install it: `npm install -g @mermaid-js/mermaid-cli` "
-            "and ensure it's in your system's PATH."
-        )
-        return None
     except Exception as e:
         logger.error(f"Error generating SVG: {str(e)}")
         st.error(f"An unexpected error occurred while generating SVG: {e}")
         return None
-    finally:
-        # Clean up temporary files
-        if 'input_file_path' in locals() and os.path.exists(input_file_path):
-            os.remove(input_file_path)
-        if 'output_file_path' in locals() and os.path.exists(output_file_path):
-            os.remove(output_file_path)
 
-def create_zip_of_svgs(df: pd.DataFrame, theme: str = "default", background: str = "transparent") -> tuple[bytes, str]:
+def create_zip_of_svgs(df: pd.DataFrame, theme: str = "default") -> tuple[bytes, str]:
     """
     Create a zip file containing all SVGs from the DataFrame
     Returns a tuple of (zip_bytes, error_message)
@@ -254,10 +167,9 @@ def create_zip_of_svgs(df: pd.DataFrame, theme: str = "default", background: str
     with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for _, row in df.iterrows():
             try:
-                svg_content = generate_svg_from_mermaid_code(
+                svg_content = mermaid_to_svg(
                     row['mermaid_graph'],
-                    theme=theme,
-                    background=background
+                    theme=theme
                 )
                 if svg_content:
                     filename = f"{row['block_name'].replace('/', '_')}.svg"
@@ -384,10 +296,9 @@ if st.session_state.agent_result_df is not None:
         with col1:
             if st.button("Prepare SVG for Download", key="prepare_svg"):
                 with st.spinner("Generating SVG..."):
-                    svg_content = generate_svg_from_mermaid_code(
+                    svg_content = mermaid_to_svg(
                         mermaid_code,
-                        theme=theme,
-                        background="transparent"
+                        theme=theme
                     )
                 
                 if svg_content:
@@ -407,8 +318,7 @@ if st.session_state.agent_result_df is not None:
                 with st.spinner("Generating ZIP file with all SVGs..."):
                     zip_bytes, error_message = create_zip_of_svgs(
                         st.session_state.agent_result_df,
-                        theme=theme,
-                        background="transparent"
+                        theme=theme
                     )
                     
                     if zip_bytes:

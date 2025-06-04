@@ -9,7 +9,3 @@ langgraph>=0.0.10
 langchain-anthropic>=0.3.14
 langchain-community>=0.3.24
 requests>=2.31.0
-# nodejs-bin[cmd]
-
-# Note: Mermaid CLI (mmdc) is required for SVG generation
-# Install with: npm install -g @mermaid-js/mermaid-cli

@@ -1,5 +1,6 @@
 import os
-import subprocess  # For calling mmdc
+import base64
+import requests
 import tempfile
 from typing import TypedDict, List
 from dotenv import load_dotenv, find_dotenv
@@ -30,14 +31,13 @@ class AgentState(TypedDict):
 @tool
 def validate_mermaid_syntax(mermaid_code: str) -> str:
     """
-    Validates the provided Mermaid diagram syntax using the mmdc (mermaid-cli) tool.
-    Returns "Graph is valid" if no errors are found by mmdc.
-    Otherwise, returns a string starting with "Error:" followed by the mmdc error output.
-    Requires @mermaid-js/mermaid-cli to be installed and mmdc command to be in PATH.
+    Validates the provided Mermaid diagram syntax using the mermaid.ink API.
+    Returns "Graph is valid" if no errors are found.
+    Otherwise, returns a string starting with "Error:" followed by the error details.
     """
-    print(f"--- Validating Mermaid Code via mmdc ---\n{mermaid_code}\n---")
+    print(f"--- Validating Mermaid Code via mermaid.ink API ---\n{mermaid_code}\n---")
 
-    # 1. Prepare the code for mmdc (remove markdown backticks)
+    # 1. Prepare the code for validation (remove markdown backticks)
     code_to_validate = mermaid_code.strip()
     if code_to_validate.startswith("```mermaid"):
         code_to_validate = code_to_validate[len("```mermaid"):]
@@ -48,45 +48,30 @@ def validate_mermaid_syntax(mermaid_code: str) -> str:
     if not code_to_validate:
         return "Error: Mermaid code is empty after stripping backticks."
 
-    input_file = None
-    output_file = None
-
     try:
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".mmd") as tmp_in:
-            tmp_in.write(code_to_validate)
-            input_file = tmp_in.name
+        # Encode the Mermaid code
+        graphbytes = code_to_validate.encode("utf8")
+        base64_bytes = base64.urlsafe_b64encode(graphbytes)
+        base64_string = base64_bytes.decode("ascii")
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".svg") as tmp_out:
-            output_file = tmp_out.name
+        # Make the request to mermaid.ink API
+        url = f'https://mermaid.ink/svg/{base64_string}'
+        response = requests.get(url, timeout=15)
 
-        process = subprocess.run(
-            ["C:\\Users\\user\\AppData\\Roaming\\npm\\mmdc.cmd", "-i", input_file, "-o", output_file, "-w", "800"],
-            capture_output=True,
-            text=True,
-            timeout=15
-        )
-
-        if process.returncode == 0:
-            if process.stderr:
-                print(f"MMDC Warnings:\n{process.stderr}")
+        if response.status_code == 200:
+            print("Validation successful: Graph is valid")
             return "Graph is valid"
         else:
-            error_details = process.stderr if process.stderr else process.stdout
-            if not error_details.strip():
-                error_details = "mmdc exited with a non-zero status code but no specific error message."
-            return f"Error: Mermaid syntax validation failed.\nMMDC Output:\n{error_details.strip()}"
+            error_message = response.text if response.text else f"HTTP {response.status_code}"
+            print(f"Validation failed: {error_message}")
+            return f"Error: Mermaid syntax validation failed.\nAPI Response: {error_message}"
 
-    except FileNotFoundError:
-        return "Error: `mmdc` command not found. Please install @mermaid-js/mermaid-cli globally (npm install -g @mermaid-js/mermaid-cli) and ensure it's in your system PATH."
-    except subprocess.TimeoutExpired:
-        return "Error: `mmdc` validation timed out. The Mermaid diagram might be too complex or mmdc is hanging."
+    except requests.Timeout:
+        return "Error: Validation request timed out. The Mermaid diagram might be too complex."
+    except requests.RequestException as e:
+        return f"Error: Failed to validate Mermaid syntax. API request failed: {str(e)}"
     except Exception as e:
-        return f"Error: An unexpected error occurred during mmdc validation: {str(e)}"
-    finally:
-        if input_file and os.path.exists(input_file):
-            os.remove(input_file)
-        if output_file and os.path.exists(output_file):
-            os.remove(output_file)
+        return f"Error: An unexpected error occurred during validation: {str(e)}"
 
 def clarify_logic_node(state: AgentState) -> AgentState:
     print("--- Clarifying Business Logic Node ---")
