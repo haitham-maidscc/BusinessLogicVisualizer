@@ -34,11 +34,38 @@ NODE_MODULES_DIR = os.path.join(APP_ROOT, "node_modules")
 PACKAGE_JSON_PATH = os.path.join(APP_ROOT, "package.json")
 TARGET_PACKAGE_DIR_IN_NODE_MODULES = os.path.join(NODE_MODULES_DIR, "@mermaid-js")
 
+def check_node_version():
+    """Check if Node.js version is compatible (>=14.0.0)"""
+    try:
+        result = subprocess.run(['node', '--version'], capture_output=True, text=True)
+        if result.returncode == 0:
+            version = result.stdout.strip().lstrip('v')
+            major_version = int(version.split('.')[0])
+            if major_version < 14:
+                logger.error(f"Incompatible Node.js version: {version}. Version 14 or higher is required.")
+                st.error(f"Incompatible Node.js version: {version}. Version 14 or higher is required.")
+                return False
+            logger.info(f"Node.js version {version} is compatible")
+            return True
+        else:
+            logger.error("Failed to get Node.js version")
+            st.error("Failed to get Node.js version")
+            return False
+    except Exception as e:
+        logger.error(f"Error checking Node.js version: {str(e)}")
+        st.error(f"Error checking Node.js version: {str(e)}")
+        return False
+    
+check_node_version()
 
 # --- Streamlit App UI ---
 logger.info("Initializing Streamlit UI")
 st.set_page_config(layout="wide")
 st.title("📄 Business Flowchart Generator")
+
+# Check Node.js version before proceeding
+if not check_node_version():
+    st.stop()
 
 st.info("🔧 Running npm install...")
 
@@ -147,6 +174,11 @@ def generate_svg_from_mermaid_code(mermaid_code: str, theme: str = "default", ba
     Returns the SVG string or None if an error occurs.
     """
     logger.info("Generating SVG from Mermaid code")
+    
+    # Check Node.js version before proceeding
+    if not check_node_version():
+        return None
+        
     try:
         # Clean up the Mermaid code
         mermaid_code = mermaid_code.strip()
