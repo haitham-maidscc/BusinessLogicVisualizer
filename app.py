@@ -36,6 +36,14 @@ logger.info("Initializing Streamlit UI")
 st.set_page_config(layout="wide")
 st.title("📄 Business Flowchart Generator")
 
+# Initialize session state for storing results if they don't exist
+if 'agent_result_df' not in st.session_state:
+    st.session_state.agent_result_df = None
+if 'download_filename' not in st.session_state:
+    st.session_state.download_filename = "data.csv"
+if 'force_recreate' not in st.session_state:
+    st.session_state.force_recreate = False
+
 logger.info("Starting application initialization")
 logger.info("Libraries imported successfully")
 
@@ -45,6 +53,8 @@ GEMINI_MODEL = "gemini-2.5-flash-preview-05-20"
 ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
 logger.info(f"Initializing chat model with {ANTHROPIC_MODEL}")
 llm = init_chat_model(f"anthropic:{ANTHROPIC_MODEL}")
+EMPTY_FILES = False
+FORCE_RECREATE = False
 
 # Table mapping configuration
 TABLE_MAPPING = {
@@ -61,10 +71,12 @@ notion_client = NotionClient(auth=NOTION_TOKEN)
 logger.info("Environment configured successfully")
 
 def fetch_data_spec_content(block_identifier: str, page_id: str, table_id: str, notion: NotionClient) -> pd.DataFrame:
+    global EMPTY_FILES
+
     logger.info(f"Fetching data spec content for block: {block_identifier}, page: {page_id}, table: {table_id}")
-    
     block_file_path = f"blocks/{page_id}_all_blocks.txt"
-    if not os.path.exists(block_file_path):
+
+    def load_from_notion():
         logger.info("Loading blocks from Notion API")
         all_blocks_data, _ = get_all_page_content(page_id, notion, _spec_block_name=block_identifier)
         try:
@@ -74,18 +86,31 @@ def fetch_data_spec_content(block_identifier: str, page_id: str, table_id: str, 
         except Exception as e:
             logger.error(f"Error saving blocks to file: {str(e)}")
             raise
+    
+    if not os.path.exists(block_file_path) or st.session_state.force_recreate:
+        load_from_notion()
 
-    return process_spec_blocks(block_identifier, page_id, table_id, notion)
+    parsed_blocks = process_spec_blocks(block_identifier, page_id, table_id, notion)
+    if isinstance(parsed_blocks, list) and len(parsed_blocks) == 0:
+        EMPTY_FILES = True
+        load_from_notion()
+        parsed_blocks = process_spec_blocks(block_identifier, page_id, table_id, notion)
+    
+    return parsed_blocks
+
+
 
 def process_dataframe_with_mermaid_agent(page_id: str, df: pd.DataFrame, logic_column: str = "original_logic", max_retries: int = 3) -> pd.DataFrame:
     """
     Takes a DataFrame and applies the agent to each row, using the value in `logic_column` as the business logic.
     Returns the DataFrame with a new column 'mermaid_graph' containing the generated Mermaid code (or None if failed).
     """
+    global EMPTY_FILES
+
     logger.info(f"Processing dataframe with mermaid agent for page: {page_id}")
     graph_file_path = f"graphs/{page_id}_graphs.csv"
 
-    if not os.path.exists(graph_file_path):
+    if not os.path.exists(graph_file_path) or EMPTY_FILES or st.session_state.force_recreate:
         logger.info("Building mermaid agent")
         app = build_mermaid_agent()
 
@@ -185,14 +210,18 @@ def create_zip_of_svgs(df: pd.DataFrame, theme: str = "default") -> tuple[bytes,
     error_message = "\n".join(error_messages) if error_messages else None
     return memory_file.getvalue(), error_message
 
-# Initialize session state for storing results if they don't exist
-if 'agent_result_df' not in st.session_state:
-    st.session_state.agent_result_df = None
-if 'download_filename' not in st.session_state:
-    st.session_state.download_filename = "data.csv"
-
 # --- Sidebar for Agent Selection and Inputs ---
 st.sidebar.header("⚙️ Agent Configuration")
+
+# Add Force Recreate toggle
+st.sidebar.markdown("---")
+st.sidebar.subheader("🔄 Cache Control")
+force_recreate = st.sidebar.toggle(
+    "Force Recreate Graphs",
+    value=st.session_state.force_recreate,
+    help="When enabled, this will force the regeneration of all graphs, ignoring any cached versions. Use this if you want to ensure fresh generation of all graphs."
+)
+st.session_state.force_recreate = force_recreate
 
 # Documentation section
 with st.sidebar.expander("📖 How to use this tool"):

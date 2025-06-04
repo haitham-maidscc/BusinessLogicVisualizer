@@ -146,9 +146,9 @@ def process_notion_blocks_from_file(
 ):
     logger.info(f"Processing Notion blocks from file: {input_filepath}")
     all_blocks = load_blocks_from_file(input_filepath)
-    if not all_blocks:
+    if not all_blocks or len(all_blocks):
         logger.warning("No blocks loaded, exiting")
-        return
+        return all_blocks
 
     all_blocks_map: Dict[str, Dict[str, Any]] = {}
     for block in all_blocks:
