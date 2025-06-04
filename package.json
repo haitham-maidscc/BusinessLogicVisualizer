@@ -1,0 +1,8 @@
+{
+  "name": "business-logic-visualizer",
+  "version": "1.0.0",
+  "description": "Business Logic Visualizer with Mermaid CLI support",
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "^10.8.0"
+  }
+} 
