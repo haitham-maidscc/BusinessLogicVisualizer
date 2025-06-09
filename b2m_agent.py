@@ -124,10 +124,13 @@ def generate_mermaid_node(state: AgentState) -> AgentState:
         *   Ensure all declared nodes are used or connected.
     2.  **Decision Nodes**: Represent conditions as diamond shapes. Example: `condition1{{Is X true?}}`.
     3.  **Multi-Value Conditions**: If a condition checks a single variable against multiple distinct values (e.g., `if client_type == "type1"`, then `if client_type == "type2"`), the decision node for `client_type` should have edges directly labeled with these values (e.g., `client_type_check{{Client Type?}} -->|type1| outcome1`, `client_type_check -- type2 --> outcome2`). Do NOT use generic "true"/"false" edges for these cases.
-    4.  **Large Text Values**: If the value or outcome associated with a condition is a long piece of text (e.g., more than 15 words or multiple sentences), replace it with a concise topic or placeholder (e.g., `id_policy_details["View Policy Details"]`, `id_complex_outcome["Complex Outcome A Description"]`). The node label should be this short topic.
+    4.  **Values**: The values for the conditions are always placeholders, that's why you will see "[value]", however, this does not mean that they all share the same value each one should have a separate [value] node.
     5.  **Clarity and Readability**: Ensure the graph is easy to understand and accurately reflects the logic. Start with `graph TD` or `flowchart TD`.
     6.  **Output Format**: Provide ONLY the Mermaid code block, starting with ```mermaid and ending with ```. No other text or explanation before or after the code block.
-    7.  **Important Rule**: always put the string inside curly or square brackets between qoutations.    
+    7.  **List all Conditions**: never forget to add any of the listed conditions.
+    8.  **Long Text Values**: even you get a long text as value you should omit it and use "[value]" for the result node.
+    9.  **Important Rule**: always put the string inside curly or square brackets between qoutations. 
+       
     **Business Logic to Convert:**
     {logic_to_use}
     {feedback_intro}
