@@ -1,150 +1,207 @@
 block_name,block_content,mermaid_graph
-User relationship.,"	Name*: User Relationship
-		if user==""maid"":
-[value]
-	Value if no condition is met: 
-	The customer is the client speaking to you.
-	The patient is the customer’s maid.
-	Always address the customer in the third person as “your maid” when discussing symptoms or advice.  
-	When the customer (client) initiates contact regarding their maid's symptoms, at the beginning of the conversation, immediately after your initial greeting, you must politely instruct the customer to have the maid reach out to us directly to discuss her symptoms. Explain clearly that this allows for the most accurate and direct symptom assessment, as we need to speak directly with the patient. Under no circumstances, at any point in the conversation, should you attempt to collect specific symptoms from the customer when they are reporting on behalf of the maid, even if they offer them. Your sole focus in this scenario is to facilitate direct communication with the maid. You should only give this direct instruction (to have the maid contact us) once per chat.
-	If the 'ok' (or similar acknowledgment) is received immediately after you have instructed the customer to have their maid reach out directly to discuss symptoms, you MUST interpret this 'ok' as an acknowledgment of your instruction and respond appropriately to end the conversation professionally.","```mermaid
-flowchart TD
-    start[""Start: User Relationship Check""] --> user_check{""User Type?""}
-    user_check -->|maid| maid_outcome[""Maid-specific handling""]
-    user_check -->|other| default_outcome[""Customer is the client<br/>Patient is customer's maid<br/>Address as 'your maid'""]
-    
-    default_outcome --> greeting_complete[""After initial greeting""]
-    greeting_complete --> instruct_direct[""Instruct customer to have<br/>maid contact directly""]
-    instruct_direct --> wait_response[""Wait for customer response""]
-    wait_response --> response_check{""Response received?""}
-    response_check -->|ok or acknowledgment| end_conversation[""End conversation professionally""]
-    response_check -->|other response| continue_chat[""Continue with general guidance<br/>No symptom collection""]
-    continue_chat --> no_symptoms[""Do not collect specific symptoms<br/>from customer about maid""]
-```"
-Non-health chat transfers.,"	Name*: NonHealth_Transfer
-		if userRelationship ==maid
-[value]
-		if userRelationship ==client & contractDetails.contractType == CC
-[value]","```mermaid
-flowchart TD
-    start[""Start""] --> userRelCheck{""User Relationship?""}
-    userRelCheck -->|maid| maidValue[""Value""]
-    userRelCheck -->|client| contractCheck{""Contract Type?""}
-    contractCheck -->|CC| clientCCValue[""Value""]
-```"
-Flow when the patient is feeling sick.,"	Name*: Diagnosis_Flow
-		if maidHasBed == true
-[value]
-		if maidHasBed == false
-[value]","```mermaid
-flowchart TD
-    start[""Start: Diagnosis Flow""] --> maidHasBed_check{""Maid Has Bed?""}
-    maidHasBed_check -->|true| true_outcome[""Value for True Case""]
-    maidHasBed_check -->|false| false_outcome[""Value for False Case""]
-```"
-Pregnancy flow.,"	Name*: Pregnancy
-		If userRelationship == maid
-[value]
-		If userRelationship == client
-[value]","```mermaid
-flowchart TD
-    start[""Start: Pregnancy""] --> userRelationship{""User Relationship?""}
-    userRelationship -->|maid| maid_value[""Maid Value""]
-    userRelationship -->|client| client_value[""Client Value""]
-```"
-Longitude/Latitude,"	Name*: longitude_latitude
-		If Client_Long == UAE
-[value]
-	Value if no condition is met: Ask them to share their location in the following format (street, apartment, city)  and send them the 3 closest medical facilities needed to that location.","```mermaid
+User relationship.,"		if user==""maid"":","```mermaid
 graph TD
-    start[""Start""] --> check_location{""Client_Long == UAE?""}
-    check_location -->|UAE| uae_outcome[""Process UAE Location""]
-    check_location -->|Other| default_outcome[""Ask them to share their location in the following format (street, apartment, city) and send them the 3 closest medical facilities needed to that location""]
+    start[""Start""] --> user_check{""user == maid?""}
+    user_check -->|Yes| value1[""[value]""]
+    user_check -->|No| end_node[""End""]
 ```"
-Insurance Number and Status,"	Name*: Insurance_Activation_Status
-		If newEidStatus ==Received && maidInsuranceCardNumber != null
-[value]
-		else if newEidStatus ==Received && maidInsuranceCardNumber == null
-[value]
-		else if [Variable Name Missing] != Received && maidInsuranceCardNumber != null
-[value]
-	Value if no condition is met: Inform the customer that the patient’s medical insurance is still being worked on, and it will be activated when they receive their EID. ","```mermaid
+Non-health chat transfers.,"		if userRelationship ==maid
+		if userRelationship ==client & contractDetails.contractType == CC
+			else","```mermaid
 flowchart TD
-    start[""Start""] --> eidStatusCheck{""newEidStatus == Received?""}
-    
-    eidStatusCheck -->|Yes| cardNumberCheck{""maidInsuranceCardNumber != null?""}
-    eidStatusCheck -->|No| secondCardCheck{""maidInsuranceCardNumber != null?""}
-    
-    cardNumberCheck -->|Yes| outcome1[""Value A""]
-    cardNumberCheck -->|No| outcome2[""Value B""]
-    
-    secondCardCheck -->|Yes| outcome3[""Value C""]
-    secondCardCheck -->|No| defaultOutcome[""Inform customer insurance being worked on""]
+    start[""Start""] --> userRelationshipCheck{""userRelationship?""}
+    userRelationshipCheck -->|maid| value1[""[value]""]
+    userRelationshipCheck -->|client| contractTypeCheck{""contractDetails.contractType?""}
+    contractTypeCheck -->|CC| value2[""[value]""]
+    contractTypeCheck -->|else| value3[""[value]""]
 ```"
-Hepatitis_Vaccine,"	Name*: Hepatitis 2 and 3rd doses
-		If patient == CC
-[value]
-		If patient == MV
-[value]","```mermaid
+Flow when the patient is feeling sick.,"		if maidHasBed == true
+		if maidHasBed == false
+			if maidHasBed == false && (maidStatus == No Show)
+				if (( maidHasBed == false && (maidStatus == No Show)) && (maidType != MV &&( maidType != CC || ccMaidType!=live-in)))
+				if maidHasBed == false &&  if (maidStatus!= No Show)
+				💡 BUSINESS_FUNCTION_VALUE: Pregnancy flow.
+						If userRelationship == maid
+						If userRelationship == client
+							If userRelationship == client&&  ccMaidType == CC
+							If userRelationship == client&& ccMaidType == MV
+						💡 BUSINESS_FUNCTION_VALUE: Longitude/Latitude
+								If Client_Long == UAE ","```mermaid
 flowchart TD
-    start[""Hepatitis 2 and 3rd doses""]
-    patient_check{""Patient Type?""}
-    cc_outcome[""CC Value""]
-    mv_outcome[""MV Value""]
+    Start([Start]) --> maidHasBed{""maidHasBed?""}
     
-    start --> patient_check
-    patient_check -->|CC| cc_outcome
-    patient_check -->|MV| mv_outcome
-```"
-Client Relations & Sick Leave,"	Name*: Client Relations & Sick Leave
-		if userRelationship == maid
-[value]","```mermaid
-flowchart TD
-    start[""Start: Client Relations & Sick Leave""]
-    userRelationshipCheck{""User Relationship?""}
-    maidOutcome[""Process Maid Relations""]
+    maidHasBed -->|true| result1[""[value]""]
+    maidHasBed -->|false| maidStatus{""maidStatus?""}
     
-    start --> userRelationshipCheck
-    userRelationshipCheck -->|maid| maidOutcome
-```"
-Patient saying they’re not able to join the client.,"	Name*: Refusal_to_Join
-		if maidStatus == With Client OR Reserved For Prospect OR Pending For Replacement
-[value]
-	Value if no condition is met: Tell the patient that they must discuss this with their family.","```mermaid
-flowchart TD
-    start[""Start: Refusal_to_Join""] --> maidStatusCheck{""Maid Status?""}
-    maidStatusCheck -->|""With Client""| value[""Value""]
-    maidStatusCheck -->|""Reserved For Prospect""| value
-    maidStatusCheck -->|""Pending For Replacement""| value
-    maidStatusCheck -->|""Other""| defaultValue[""Tell the patient that they must discuss this with their family""]
-```"
-Patient wants us to reach out to her client.,"	Name*: Reaching_Client
-		if ccMaidType == CC && maidStatus == With Client
-[value]
-	Value if no condition is met: Push the patient to discuss the concern politely with their employer, even if they insist, you will keep politely reformulating. ","```mermaid
-flowchart TD
-    start[""Start: Reaching_Client""]
-    condition1{""ccMaidType == CC AND maidStatus == With Client?""}
-    value_outcome[""[value]""]
-    default_outcome[""Push patient to discuss concern politely with employer""]
+    maidStatus -->|""No Show""| maidTypeCheck1{""maidType?""}
+    maidStatus -->|""Not No Show""| result2[""[value]""]
     
-    start --> condition1
-    condition1 -->|Yes| value_outcome
-    condition1 -->|No| default_outcome
+    maidTypeCheck1 -->|""MV""| result3[""[value]""]
+    maidTypeCheck1 -->|""CC""| ccMaidTypeCheck{""ccMaidType?""}
+    maidTypeCheck1 -->|""Other""| pregnancyFlow[""Pregnancy flow""]
+    
+    ccMaidTypeCheck -->|""live-in""| result4[""[value]""]
+    ccMaidTypeCheck -->|""Not live-in""| pregnancyFlow
+    
+    pregnancyFlow --> userRelationship{""userRelationship?""}
+    
+    userRelationship -->|""maid""| result5[""[value]""]
+    userRelationship -->|""client""| clientCCMaidType{""ccMaidType?""}
+    
+    clientCCMaidType -->|""CC""| longitudeLatitude[""Longitude/Latitude""]
+    clientCCMaidType -->|""MV""| longitudeLatitude
+    
+    longitudeLatitude --> clientLong{""Client_Long?""}
+    
+    clientLong -->|""UAE""| result6[""[value]""]
 ```"
-Patient asking for sick leave.,"	Name*:sick_leave_flow
-		if maidType == CC maidStatus == With Client
-[value]
-		if maidType == MV
-[value]
-	Value if no condition is met: ","```mermaid
+Pregnancy flow.,"		If userRelationship == maid
+		If userRelationship == client
+			If userRelationship == client&&  ccMaidType == CC
+			If userRelationship == client&& ccMaidType == MV","```mermaid
+flowchart TD
+    start([Start]) --> userRelationshipCheck{""userRelationship?""}
+    userRelationshipCheck -->|maid| maidResult[""[value]""]
+    userRelationshipCheck -->|client| ccMaidTypeCheck{""ccMaidType?""}
+    ccMaidTypeCheck -->|CC| ccResult[""[value]""]
+    ccMaidTypeCheck -->|MV| mvResult[""[value]""]
+```"
+Longitude/Latitude,		If Client_Long == UAE ,"```mermaid
+flowchart TD
+    Start([Start])
+    Start --> ClientLongCheck{""Client_Long == UAE?""}
+    ClientLongCheck -->|Yes| Value1[""[value]""]
+    ClientLongCheck -->|No| Value2[""[value]""]
+```"
+Insurance Number and Status,"		If newEidStatus ==Received && maidInsuranceCardNumber != null 
+		else if newEidStatus ==Received && maidInsuranceCardNumber == null 
+		else if [Variable Name Missing] != Received && maidInsuranceCardNumber != null ","```mermaid
+flowchart TD
+    start([Start]) --> check_eid_status{""newEidStatus?""}
+    
+    check_eid_status -->|Received| check_insurance_received{""maidInsuranceCardNumber != null?""}
+    check_eid_status -->|""Not Received""| check_insurance_not_received{""maidInsuranceCardNumber != null?""}
+    
+    check_insurance_received -->|Yes| result1[""[value]""]
+    check_insurance_received -->|No| result2[""[value]""]
+    
+    check_insurance_not_received -->|Yes| result3[""[value]""]
+    check_insurance_not_received -->|No| end_node([End])
+```"
+Hepatitis_Vaccine,"		If patient == CC
+		If patient == MV","```mermaid
+flowchart TD
+    start[""Start""] --> patient_check{""Patient Type?""}
+    patient_check -->|CC| cc_result[""[value]""]
+    patient_check -->|MV| mv_result[""[value]""]
+```"
+Client Relations & Sick Leave,"		if userRelationship == maid
+				💡 BUSINESS_FUNCTION_VALUE: Patient saying they’re not able to join the client.
+						if maidStatus == With Client OR Reserved For Prospect OR Pending For Replacement
+							if ccMaidType == live-in
+								if  maidHasBed == false
+								else
+							else
+				💡TECHNICAL_FUNCTION_VALUE: Patient saying they’re not able to join the client.
+					Value:
+					Value:
+					Value:
+					Value:
+				💡 BUSINESS_FUNCTION_VALUE: Patient wants us to reach out to her client.
+						if ccMaidType == CC && maidStatus == With Client
+				💡TECHNICAL_FUNCTION_VALUE: Patient wants us to reach out to her client.
+					Value:
+					Value:
+				💡 BUSINESS_FUNCTION_VALUE: Patient asking for sick leave.
+						if maidType == CC maidStatus == With Client
+						if maidType == MV 
+				💡TECHNICAL_FUNCTION_VALUE: Patient asking for sick leave.
+					Value:
+					Value:","```mermaid
+flowchart TD
+    start[""Start""] --> userRelCheck{""userRelationship?""}
+    
+    userRelCheck -->|maid| bizFunc1[""BUSINESS_FUNCTION_VALUE: Patient saying they're not able to join the client""]
+    
+    bizFunc1 --> maidStatusCheck{""maidStatus?""}
+    
+    maidStatusCheck -->|""With Client""| ccMaidTypeCheck1{""ccMaidType?""}
+    maidStatusCheck -->|""Reserved For Prospect""| ccMaidTypeCheck2{""ccMaidType?""}
+    maidStatusCheck -->|""Pending For Replacement""| ccMaidTypeCheck3{""ccMaidType?""}
+    
+    ccMaidTypeCheck1 -->|""live-in""| maidHasBedCheck1{""maidHasBed?""}
+    ccMaidTypeCheck2 -->|""live-in""| maidHasBedCheck2{""maidHasBed?""}
+    ccMaidTypeCheck3 -->|""live-in""| maidHasBedCheck3{""maidHasBed?""}
+    
+    maidHasBedCheck1 -->|false| value1[""[value]""]
+    maidHasBedCheck1 -->|true| value2[""[value]""]
+    maidHasBedCheck2 -->|false| value3[""[value]""]
+    maidHasBedCheck2 -->|true| value4[""[value]""]
+    maidHasBedCheck3 -->|false| value5[""[value]""]
+    maidHasBedCheck3 -->|true| value6[""[value]""]
+    
+    ccMaidTypeCheck1 -->|other| value7[""[value]""]
+    ccMaidTypeCheck2 -->|other| value8[""[value]""]
+    ccMaidTypeCheck3 -->|other| value9[""[value]""]
+    
+    bizFunc1 --> techFunc1[""TECHNICAL_FUNCTION_VALUE: Patient saying they're not able to join the client""]
+    techFunc1 --> techValue1[""Value""]
+    techFunc1 --> techValue2[""Value""]
+    techFunc1 --> techValue3[""Value""]
+    techFunc1 --> techValue4[""Value""]
+    
+    bizFunc1 --> bizFunc2[""BUSINESS_FUNCTION_VALUE: Patient wants us to reach out to her client""]
+    
+    bizFunc2 --> ccMaidTypeAndStatusCheck{""ccMaidType == CC && maidStatus == With Client?""}
+    ccMaidTypeAndStatusCheck -->|true| value10[""[value]""]
+    
+    bizFunc2 --> techFunc2[""TECHNICAL_FUNCTION_VALUE: Patient wants us to reach out to her client""]
+    techFunc2 --> techValue5[""Value""]
+    techFunc2 --> techValue6[""Value""]
+    
+    bizFunc1 --> bizFunc3[""BUSINESS_FUNCTION_VALUE: Patient asking for sick leave""]
+    
+    bizFunc3 --> maidTypeCheck1{""maidType == CC && maidStatus == With Client?""}
+    maidTypeCheck1 -->|true| value11[""[value]""]
+    
+    bizFunc3 --> maidTypeCheck2{""maidType?""}
+    maidTypeCheck2 -->|MV| value12[""[value]""]
+    
+    bizFunc3 --> techFunc3[""TECHNICAL_FUNCTION_VALUE: Patient asking for sick leave""]
+    techFunc3 --> techValue7[""Value""]
+    techFunc3 --> techValue8[""Value""]
+```"
+Patient saying they’re not able to join the client.,"		if maidStatus == With Client OR Reserved For Prospect OR Pending For Replacement
+			if ccMaidType == live-in
+				if  maidHasBed == false
+				else
+			else","```mermaid
+flowchart TD
+    start[""Start""] --> maidStatusCheck{""maidStatus?""}
+    maidStatusCheck -->|""With Client""| ccMaidTypeCheck{""ccMaidType?""}
+    maidStatusCheck -->|""Reserved For Prospect""| ccMaidTypeCheck
+    maidStatusCheck -->|""Pending For Replacement""| ccMaidTypeCheck
+    maidStatusCheck -->|Other| endOther[""End""]
+    
+    ccMaidTypeCheck -->|""live-in""| maidHasBedCheck{""maidHasBed?""}
+    ccMaidTypeCheck -->|Other| endOtherType[""End""]
+    
+    maidHasBedCheck -->|false| resultFalse[""[value]""]
+    maidHasBedCheck -->|true| resultTrue[""[value]""]
+```"
+Patient wants us to reach out to her client.,		if ccMaidType == CC && maidStatus == With Client,"```mermaid
+graph TD
+    start[""Start""] --> ccMaidType_check{""ccMaidType?""}
+    ccMaidType_check -->|CC| maidStatus_check{""maidStatus?""}
+    ccMaidType_check -->|other| value1[""[value]""]
+    maidStatus_check -->|""With Client""| value2[""[value]""]
+    maidStatus_check -->|other| value3[""[value]""]
+```"
+Patient asking for sick leave.,"		if maidType == CC maidStatus == With Client
+		if maidType == MV ","```mermaid
 flowchart TD
     start[""Start""] --> maidTypeCheck{""Maid Type?""}
-    
-    maidTypeCheck -->|CC| ccStatusCheck{""Maid Status?""}
-    maidTypeCheck -->|MV| mvOutcome[""MV Value""]
-    maidTypeCheck -->|Other| defaultOutcome[""Default Value""]
-    
-    ccStatusCheck -->|""With Client""| ccWithClientOutcome[""CC With Client Value""]
-    ccStatusCheck -->|Other| defaultOutcome
+    maidTypeCheck -->|CC| maidStatusCheck{""Maid Status?""}
+    maidTypeCheck -->|MV| mvResult[""[value]""]
+    maidStatusCheck -->|""With Client""| ccResult[""[value]""]
 ```"

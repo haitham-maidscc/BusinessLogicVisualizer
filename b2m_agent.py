@@ -128,9 +128,9 @@ def generate_mermaid_node(state: AgentState) -> AgentState:
     5.  **Clarity and Readability**: Ensure the graph is easy to understand and accurately reflects the logic. Start with `graph TD` or `flowchart TD`.
     6.  **Output Format**: Provide ONLY the Mermaid code block, starting with ```mermaid and ending with ```. No other text or explanation before or after the code block.
     7.  **List all Conditions**: never forget to add any of the listed conditions.
-    8.  **Long Text Values**: even you get a long text as value you should omit it and use "[value]" for the result node.
+    8.  **Long Text Values**: even you get a long text as value (e.g "if not condition is met [a long text]") for a condition you should omit it and use "[value]" for the result node.
     9.  **Important Rule**: always put the string inside curly or square brackets between qoutations. 
-       
+
     **Business Logic to Convert:**
     {logic_to_use}
     {feedback_intro}
