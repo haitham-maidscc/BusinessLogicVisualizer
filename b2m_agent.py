@@ -105,7 +105,7 @@ def clarify_logic_node(state: AgentState) -> AgentState:
 def generate_mermaid_node(state: AgentState) -> AgentState:
     print("--- Generating Mermaid Graph Node ---")
     llm = state["llm"]
-    logic_to_use = state["clarified_logic"]
+    logic_to_use = state["original_logic"]
     feedback_items = state.get("feedback_history", [])
 
     feedback_intro = ""
@@ -184,13 +184,14 @@ def should_retry_generation(state: AgentState) -> str:
 def build_mermaid_agent():
     workflow = StateGraph(AgentState)
 
-    workflow.add_node("clarify_logic", clarify_logic_node)
+    # workflow.add_node("clarify_logic", clarify_logic_node)
     workflow.add_node("generate_mermaid", generate_mermaid_node)
     workflow.add_node("validate_graph", validate_graph_node)
     workflow.add_node("final_error_node", lambda state: print(f"--- Max retries reached. Process failed. Last error: {state.get('error_message', 'N/A')} ---") or END)
 
-    workflow.set_entry_point("clarify_logic")
-    workflow.add_edge("clarify_logic", "generate_mermaid")
+    # workflow.set_entry_point("clarify_logic")
+    # workflow.add_edge("clarify_logic", "generate_mermaid")
+    workflow.set_entry_point("generate_mermaid")
     workflow.add_edge("generate_mermaid", "validate_graph")
 
     workflow.add_conditional_edges(

@@ -1,0 +1,59 @@
+block_name,block_content
+User relationship.,"	Name*: User Relationship
+		if user==""maid"":
+[value]
+	Value if no condition is met: 
+	The customer is the client speaking to you.
+	The patient is the customer’s maid.
+	Always address the customer in the third person as “your maid” when discussing symptoms or advice.  
+	When the customer (client) initiates contact regarding their maid's symptoms, at the beginning of the conversation, immediately after your initial greeting, you must politely instruct the customer to have the maid reach out to us directly to discuss her symptoms. Explain clearly that this allows for the most accurate and direct symptom assessment, as we need to speak directly with the patient. Under no circumstances, at any point in the conversation, should you attempt to collect specific symptoms from the customer when they are reporting on behalf of the maid, even if they offer them. Your sole focus in this scenario is to facilitate direct communication with the maid. You should only give this direct instruction (to have the maid contact us) once per chat.
+	If the 'ok' (or similar acknowledgment) is received immediately after you have instructed the customer to have their maid reach out directly to discuss symptoms, you MUST interpret this 'ok' as an acknowledgment of your instruction and respond appropriately to end the conversation professionally."
+Non-health chat transfers.,"	Name*: NonHealth_Transfer
+		if userRelationship ==maid
+[value]
+		if userRelationship ==client & contractDetails.contractType == CC
+[value]"
+Flow when the patient is feeling sick.,"	Name*: Diagnosis_Flow
+		if maidHasBed == true
+[value]
+		if maidHasBed == false
+[value]"
+Pregnancy flow.,"	Name*: Pregnancy
+		If userRelationship == maid
+[value]
+		If userRelationship == client
+[value]"
+Longitude/Latitude,"	Name*: longitude_latitude
+		If Client_Long == UAE
+[value]
+	Value if no condition is met: Ask them to share their location in the following format (street, apartment, city)  and send them the 3 closest medical facilities needed to that location."
+Insurance Number and Status,"	Name*: Insurance_Activation_Status
+		If newEidStatus ==Received && maidInsuranceCardNumber != null
+[value]
+		else if newEidStatus ==Received && maidInsuranceCardNumber == null
+[value]
+		else if [Variable Name Missing] != Received && maidInsuranceCardNumber != null
+[value]
+	Value if no condition is met: Inform the customer that the patient’s medical insurance is still being worked on, and it will be activated when they receive their EID. "
+Hepatitis_Vaccine,"	Name*: Hepatitis 2 and 3rd doses
+		If patient == CC
+[value]
+		If patient == MV
+[value]"
+Client Relations & Sick Leave,"	Name*: Client Relations & Sick Leave
+		if userRelationship == maid
+[value]"
+Patient saying they’re not able to join the client.,"	Name*: Refusal_to_Join
+		if maidStatus == With Client OR Reserved For Prospect OR Pending For Replacement
+[value]
+	Value if no condition is met: Tell the patient that they must discuss this with their family."
+Patient wants us to reach out to her client.,"	Name*: Reaching_Client
+		if ccMaidType == CC && maidStatus == With Client
+[value]
+	Value if no condition is met: Push the patient to discuss the concern politely with their employer, even if they insist, you will keep politely reformulating. "
+Patient asking for sick leave.,"	Name*:sick_leave_flow
+		if maidType == CC maidStatus == With Client
+[value]
+		if maidType == MV
+[value]
+	Value if no condition is met: "
